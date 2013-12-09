@@ -1,0 +1,111 @@
+'''
+
+Created on Dec 7, 2013
+
+@author: ali
+'''
+
+import codecs
+import os, string
+
+
+class reader(object):
+    '''
+    classdocs
+    '''
+
+
+    def __init__(self, path, token_per_line=False):
+        '''
+        Constructor
+        '''
+        self.path = path
+        self.fileNo = 0
+        self.TPL = token_per_line;
+        self.fileids = self.fileids()
+        self.lines = self.lines()
+        self.sents = self.sents()
+      
+        
+       
+        
+    
+    def fileids(self):
+        # os.path.isdir(self.path)
+       if os.path.exists(self.path):
+           if os.path.isdir(self.path):
+               for filename in  os.listdir(self.path):
+                    self.fileNo += 1
+                    filepath = os.path.join(self.path, filename)
+                    yield  filepath
+           else:
+               # " a file"
+               file = open(self.path, "r")
+               for line in file:
+                   yield line
+               
+   
+       else:
+           
+           print "no such a file"
+           
+    def lines(self):
+        if not self.TPL:
+          for filename in self.fileids:
+              file = open(filename, "r")              
+              for line in file:
+                 if line: 
+                    yield line
+        else:
+            for filename in self.fileids:
+              file = open(filename, "r")              
+              for line in file:
+                 items = line.split()
+                 leng = len(line.split())
+                 if leng == 5:
+                     word = items[-1]
+                     tag = items[2]
+                     shorttag = items[-3]
+                     # print shorttag
+                 elif leng > 5:
+                     newitems = items[4:]
+                     word = u'\u200c'.join(newitems)
+                     tag = items[2]
+
+                 wordtag = word + "\\" + tag
+                 yield (word,tag)
+                        
+                  
+    def sents(self):
+        sent = []
+        sent_end = [".", "?", "!"]
+        if not self.TPL:
+          for line in self.lines:
+             line.strip("""/r/n""")
+             for char in line:
+                 if char not in sent_end:
+                     sent.append(char)
+                    
+                 elif char in sent_end:
+                     yield "".join(sent)  
+                     sent = []      
+        else:
+            for line in self.lines:
+                if line[1]!="DELM":
+                    sent.append(line)
+                else:  
+                    
+                       yield sent
+                       sent=[]                
+                
+        
+# reader = reader("c://presidents")
+# for i in reader.sents:
+#     print i
+#     
+# print reader.lines
+# print string.punctuation
+ 
+# for item in  reader.fileids:
+#     print item
+#      
